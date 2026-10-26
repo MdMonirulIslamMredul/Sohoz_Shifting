@@ -158,10 +158,10 @@
         <hr class="border-secondary border-opacity-25 my-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <p class="small text-secondary mb-0">
-                &copy; {{ date('Y') }} <strong class="text-light">{{ $footerSetting?->site_name ?? 'Sohoz Shifting' }}</strong>. সর্বস্বত্ব সংরক্ষিত।
+                &copy; {{ date('Y') }} <strong class="text-light">{{ $footerSetting?->site_name ?? 'Sohoz Shifting' }}</strong> নির্ভরযোগ্য ও নিরাপদ বাসা ও অফিস শিফটিং সার্ভিস ঢাকা সহ সারাদেশে।
             </p>
             <div class="small text-secondary">
-                নির্ভরযোগ্য ও নিরাপদ বাসা ও অফিস শিফটিং সার্ভিস ঢাকা সহ সারাদেশে।
+                Developed by <a href="https://www.techwebdit.com/" target="_blank" rel="noopener noreferrer" class="text-warning text-decoration-none fw-semibold" title="Techweb Bd It">Techweb Bd It</a>
             </div>
         </div>
     </div>
