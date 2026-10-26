@@ -27,14 +27,14 @@
                         <i class="bi bi-calendar2-check me-1"></i> বুকিং দিন
                     </a>
                 </li>
-                @guest
+                {{-- @guest
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('login') }}">Login</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link " href="{{ route('register') }}">Register</a>
                     </li>
-                @endguest
+                @endguest --}}
 
                 @auth
                     <li class="nav-item dropdown">
