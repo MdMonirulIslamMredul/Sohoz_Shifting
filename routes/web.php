@@ -130,6 +130,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update')->middleware('permission:Web_Settings');
 
 
+        Route::resource('products', AdminProductController::class)->except(['show'])->middleware('permission:manage products');
         Route::resource('product-categories', AdminProductCategoryController::class)->except(['show'])->middleware('permission:manage products');
         Route::resource('product-subcategories', AdminProductSubcategoryController::class)->except(['show'])->middleware('permission:manage products');
         Route::resource('services', AdminServiceController::class)->except(['show'])->middleware('permission:manage services');
