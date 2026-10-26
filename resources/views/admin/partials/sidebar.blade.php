@@ -123,7 +123,7 @@
     @endcan
 
     {{-- Management Menu --}}
-    @canany(['manage users', 'manage roles', 'manage permissions'])
+    {{-- @canany(['manage users', 'manage roles', 'manage permissions'])
         @php
             $managementRoutes = [
                 'admin.users.*',
@@ -152,10 +152,10 @@
                     class="{{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">Permissions</a>
             @endcan
         </div>
-    @endcanany
+    @endcanany --}}
 
     {{-- Products Menu --}}
-    @can('manage products')
+    {{-- @can('manage products')
         @php
             $productsRoutes = [
                 'admin.products.*',
@@ -178,7 +178,7 @@
             <a href="{{ route('admin.product-subcategories.index') }}"
                 class="{{ request()->routeIs('admin.product-subcategories.*') ? 'active' : '' }}">Product Subcategories</a>
         </div>
-    @endcan
+    @endcan --}}
 
     {{-- Services --}}
     @can('manage services')
