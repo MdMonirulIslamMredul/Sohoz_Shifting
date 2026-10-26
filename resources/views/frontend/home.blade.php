@@ -16,7 +16,7 @@
 
         @media (min-width: 992px) {
             .hero-slider {
-                height: 90vh;
+                height: 100vh;
                 min-height: 620px;
             }
         }
@@ -139,6 +139,26 @@
             opacity: 1;
             transform: translateY(0);
             transition-delay: 0.52s;
+        }
+
+        .btn-hero-services {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border: 2px solid #ffffff !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.25s ease-in-out !important;
+        }
+
+        .btn-hero-services:hover {
+            background-color: #f1f5f9 !important;
+            color: #0284c7 !important;
+            border-color: #f1f5f9 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
         }
 
         /* Navigation Arrows */
@@ -587,8 +607,8 @@
                                     <a href="#bookingSection" class="btn btn-warning btn-lg fw-bold text-dark px-4 shadow-sm" style="background-color: #f59e0b; border: none;">
                                         <i class="bi bi-calendar-check-fill me-1"></i> অনলাইন বুকিং দিন
                                     </a>
-                                    <a href="#servicesSection" class="btn btn-outline-light btn-lg px-4">
-                                        আমাদের সেবাসমূহ
+                                    <a href="#servicesSection" class="btn btn-hero-services btn-lg px-4 shadow-sm">
+                                        <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i> আমাদের সেবাসমূহ
                                     </a>
                                     <a href="https://wa.me/8801700000000?text={{ rawurlencode('আসসালামু আলাইকুম, আমি সহজ শিফটিং সার্ভিস সম্পর্কে বিস্তারিত জানতে চাই।') }}" target="_blank" 
                                        class="btn btn-success btn-lg fw-bold d-inline-flex align-items-center px-4 shadow-sm" style="background-color: #10b981; border: none;">
