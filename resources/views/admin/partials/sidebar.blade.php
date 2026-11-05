@@ -1,11 +1,14 @@
-<div class="col-lg-2 sidebar p-3 d-flex flex-column" style="min-height: 100vh;">
+<div class="offcanvas-lg offcanvas-start col-lg-2 sidebar p-3 d-flex flex-column" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-25">
-        <h5 class="text-white mb-0">Admin Panel</h5>
-        <a href="{{ Route::has('home') ? route('home') : url('/') }}" target="_blank"
-            class="btn btn-sm btn-outline-light border-secondary text-white py-1 px-2"
-            title="View Frontend Website">
-            <i class="bi bi-globe"></i>
-        </a>
+        <h5 class="text-white mb-0" id="adminSidebarLabel">Admin Panel</h5>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ Route::has('home') ? route('home') : url('/') }}" target="_blank"
+                class="btn btn-sm btn-outline-light border-secondary text-white py-1 px-2"
+                title="View Frontend Website">
+                <i class="bi bi-globe"></i>
+            </a>
+            <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#adminSidebar" aria-label="Close"></button>
+        </div>
     </div>
 
     {{-- Dashboard --}}
