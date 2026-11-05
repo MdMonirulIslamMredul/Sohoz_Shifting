@@ -1,8 +1,13 @@
-<div class="bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-    <div>
-        <strong>Welcome, {{ auth()->user()->name }}</strong>
+<div class="topbar bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary d-lg-none p-1 px-2 border-0" type="button" id="sidebarToggler"
+            data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar"
+            aria-label="Toggle navigation">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+        <strong class="text-truncate">Welcome, {{ auth()->user()->name }}</strong>
     </div>
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2 gap-sm-3">
         <a href="{{ Route::has('home') ? route('home') : url('/') }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Frontend Website">
             <i class="bi bi-globe"></i>
         </a>
@@ -16,11 +21,11 @@
             @endif
         </a>
         <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="adminUserMenu"
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle text-truncate" style="max-width: 160px;" type="button" id="adminUserMenu"
                 data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle"></i> {{ auth()->user()->name }}
+                <i class="bi bi-person-circle"></i> <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminUserMenu">
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="adminUserMenu">
                 <li><a class="dropdown-item" href="{{ Route::has('home') ? route('home') : url('/') }}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Visit Website</a></li>
                 <li>
                     <hr class="dropdown-divider">
@@ -33,7 +38,7 @@
                 <li>
                     <form action="{{ route('admin.logout') }}" method="POST" class="m-0">
                         @csrf
-                        <button type="submit" class="dropdown-item">Logout</button>
+                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
                     </form>
                 </li>
             </ul>
