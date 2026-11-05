@@ -36,4 +36,9 @@ class Service extends Model
     {
         return 'slug';
     }
+
+    public function bookingServices()
+    {
+        return $this->hasMany(ShiftingBookingService::class, 'service_id');
+    }
 }
