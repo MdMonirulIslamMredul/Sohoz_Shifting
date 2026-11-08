@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AboutController as AdminAboutController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\CounterController as AdminCounterController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
@@ -14,10 +15,12 @@ use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductSubcategoryController as AdminProductSubcategoryController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\TestimonialController as AdminTestimonialController;
 use App\Http\Controllers\Admin\ServiceController as AdminServiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TeamMemberController as AdminTeamMemberController;
+use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
@@ -43,10 +46,11 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/booking', [ShiftingBookingController::class, 'create'])->name('bookings.create');
-Route::post('/booking', [ShiftingBookingController::class, 'store'])->name('bookings.store');
+
+// Public Booking confirmation & tracking
 Route::get('/booking/confirmation/{code}', [ShiftingBookingController::class, 'confirmation'])->name('bookings.confirmation');
 Route::get('/booking/track', [ShiftingBookingController::class, 'track'])->name('bookings.track');
+
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
@@ -68,8 +72,22 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 });
 
+// Authenticated Customer Routes (Mandatory Login before booking & Customer Portal)
 Route::middleware('auth')->group(function () {
+    Route::get('/booking', [ShiftingBookingController::class, 'create'])->name('bookings.create');
+    Route::post('/booking', [ShiftingBookingController::class, 'store'])->name('bookings.store');
+    Route::post('/booking/apply-coupon', [ShiftingBookingController::class, 'checkCoupon'])->name('bookings.check-coupon');
+
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/bookings/{shifting_booking}', [UserDashboardController::class, 'showBooking'])->name('user.bookings.show');
+    Route::post('/dashboard/bookings/{shifting_booking}/cancel', [UserDashboardController::class, 'cancelBooking'])->name('user.bookings.cancel');
+    Route::post('/dashboard/bookings/{shifting_booking}/reschedule', [UserDashboardController::class, 'rescheduleBooking'])->name('user.bookings.reschedule');
+    Route::get('/dashboard/bookings/{shifting_booking}/quotation', [UserDashboardController::class, 'showQuotation'])->name('user.quotations.show');
+    Route::post('/dashboard/bookings/{shifting_booking}/quotation/approve', [UserDashboardController::class, 'approveQuotation'])->name('user.quotations.approve');
+    Route::get('/dashboard/bookings/{shifting_booking}/invoice', [UserDashboardController::class, 'showInvoice'])->name('user.invoices.show');
+    Route::post('/dashboard/bookings/{shifting_booking}/ticket', [UserDashboardController::class, 'storeTicket'])->name('user.tickets.store');
+    Route::post('/dashboard/tickets/{ticket}/reply', [UserDashboardController::class, 'replyTicket'])->name('user.tickets.reply');
+
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
 
@@ -129,14 +147,33 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit')->middleware('permission:Web_Settings');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update')->middleware('permission:Web_Settings');
 
-
         Route::resource('products', AdminProductController::class)->except(['show'])->middleware('permission:manage products');
         Route::resource('product-categories', AdminProductCategoryController::class)->except(['show'])->middleware('permission:manage products');
         Route::resource('product-subcategories', AdminProductSubcategoryController::class)->except(['show'])->middleware('permission:manage products');
         Route::resource('services', AdminServiceController::class)->except(['show'])->middleware('permission:manage services');
         Route::resource('property-types', AdminPropertyTypeController::class)->except(['show']);
+
+        // Shifting Bookings Operations, Quotations, Invoices & Dispatch
+        Route::get('shifting-bookings/check-new', [AdminShiftingBookingController::class, 'checkNewBookings'])->name('shifting-bookings.check-new');
+        Route::post('shifting-bookings/{shifting_booking}/quotation', [AdminShiftingBookingController::class, 'storeQuotation'])->name('shifting-bookings.store-quotation');
+        Route::post('shifting-bookings/{shifting_booking}/invoice', [AdminShiftingBookingController::class, 'storeInvoice'])->name('shifting-bookings.store-invoice');
+        Route::post('shifting-bookings/{shifting_booking}/follow-up', [AdminShiftingBookingController::class, 'storeFollowUp'])->name('shifting-bookings.store-follow-up');
+        Route::post('shifting-bookings/{shifting_booking}/handle-request', [AdminShiftingBookingController::class, 'handleRescheduleOrCancel'])->name('shifting-bookings.handle-request');
         Route::get('shifting-bookings/{shifting_booking}/print-challan', [AdminShiftingBookingController::class, 'printChallan'])->name('shifting-bookings.print-challan');
         Route::resource('shifting-bookings', AdminShiftingBookingController::class);
+
+        // Coupons & Promotions
+        Route::resource('coupons', AdminCouponController::class)->except(['show']);
+
+        // Customer Support & Complaints Tickets
+        Route::get('tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
+        Route::get('tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
+        Route::post('tickets/{ticket}/reply', [AdminTicketController::class, 'reply'])->name('tickets.reply');
+        Route::patch('tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('tickets.update-status');
+
+        // Operations, Financial & Campaign Attribution Reports
+        Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/campaigns', [AdminReportController::class, 'campaigns'])->name('reports.campaigns');
 
         Route::prefix('system-tools')->name('system-tools.')->middleware('permission:Web_Settings')->group(function () {
             Route::get('/', [SystemToolController::class, 'index'])->name('index');
@@ -157,10 +194,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-// Emergency Web Setup Route (Runs migrations, storage link & cache clear via browser on hosting without terminal)
+// Emergency Web Setup Route
 Route::get('/system/setup', [SystemToolController::class, 'emergencySetup'])->name('system.setup');
 
-// Automatic Fallback for Uploaded Files (solves 404s when symlink is missing on shared hosting without terminal)
+// Automatic Fallback for Uploaded Files
 Route::get('/storage/{path}', function (string $path) {
     $cleanPath = str_replace(['..', "\0"], '', $path);
     $cleanPath = ltrim($cleanPath, '/\\');
@@ -178,4 +215,3 @@ Route::get('/storage/{path}', function (string $path) {
         'Cache-Control' => 'public, max-age=31536000',
     ]);
 })->where('path', '.*')->name('storage.fallback');
-

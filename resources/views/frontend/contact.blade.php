@@ -115,7 +115,7 @@
                                             <i class="bi bi-person-fill"></i>
                                         </span>
                                         <input type="text" name="name" class="form-control border-start-0 @error('name') is-invalid @enderror"
-                                            value="{{ old('name') }}" placeholder="e.g. John Doe" required>
+                                            value="{{ old('name') }}" placeholder="e.g. Monirul Islam" required>
                                     </div>
                                     @error('name')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
@@ -129,7 +129,7 @@
                                             <i class="bi bi-envelope-fill"></i>
                                         </span>
                                         <input type="email" name="email" class="form-control border-start-0 @error('email') is-invalid @enderror"
-                                            value="{{ old('email') }}" placeholder="e.g. john@example.com" required>
+                                            value="{{ old('email') }}" placeholder="e.g. monirul@example.com" required>
                                     </div>
                                     @error('email')
                                         <div class="text-danger small mt-1">{{ $message }}</div>

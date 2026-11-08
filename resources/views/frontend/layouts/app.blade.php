@@ -18,6 +18,38 @@
     @else
         <link rel="icon" href="{{ asset('images/logo.png') }}">
     @endif
+
+    @if($settings?->enable_marketing_tracking)
+        @if(!empty($settings->ga4_measurement_id))
+            <!-- Google Analytics 4 -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{ $settings->ga4_measurement_id }}"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '{{ $settings->ga4_measurement_id }}');
+            </script>
+        @endif
+        @if(!empty($settings->meta_pixel_id))
+            <!-- Meta Pixel Code -->
+            <script>
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)}(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', '{{ $settings->meta_pixel_id }}');
+                fbq('track', 'PageView');
+            </script>
+            <noscript>
+                <img height="1" width="1" style="display:none"
+                    src="https://www.facebook.com/tr?id={{ $settings->meta_pixel_id }}&ev=PageView&noscript=1"/>
+            </noscript>
+        @endif
+    @endif
     <style>
         :root {
             --primary-color: {{ $settings?->primary_color ?? '#0d6efd' }};
@@ -855,6 +887,23 @@
                 passive: true
             });
         })();
+        // WhatsApp Click Tracking
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a[href*="wa.me"], a[href*="whatsapp"]');
+            if (target) {
+                if (typeof gtag === 'function') {
+                    gtag('event', 'whatsapp_click', {
+                        'event_category': 'contact',
+                        'event_label': target.href
+                    });
+                }
+                if (typeof fbq === 'function') {
+                    fbq('trackCustom', 'WhatsAppClick', {
+                        'destination': target.href
+                    });
+                }
+            }
+        });
     </script>
     @stack('scripts')
 </body>
