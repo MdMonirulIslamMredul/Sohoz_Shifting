@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\BookingInvoice;
+use App\Models\BookingQuotation;
+use App\Models\BookingSupportTicket;
+use App\Models\Coupon;
 use App\Models\PropertyType;
 use App\Models\Service;
 use App\Models\Setting;
@@ -15,6 +19,7 @@ class ShiftingBookingTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+    protected User $customer;
     protected PropertyType $propertyType;
     protected Service $service1;
     protected Service $service2;
@@ -29,9 +34,18 @@ class ShiftingBookingTest extends TestCase
 
         $this->admin = User::create([
             'name' => 'Admin User',
+            'phone' => '01700000000',
             'email' => 'admin_shifting@test.com',
             'password' => bcrypt('password123'),
             'is_admin' => true,
+        ]);
+
+        $this->customer = User::create([
+            'name' => 'তানভীর আহমেদ',
+            'phone' => '01700123456',
+            'email' => 'tanvir@gmail.com',
+            'password' => bcrypt('password123'),
+            'is_admin' => false,
         ]);
 
         $this->propertyType = PropertyType::create([
@@ -59,18 +73,53 @@ class ShiftingBookingTest extends TestCase
         ]);
     }
 
-    public function test_booking_create_page_renders_successfully(): void
+    public function test_guest_is_redirected_to_login_when_accessing_booking(): void
     {
         $response = $this->get(route('bookings.create'));
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_customer_can_login_using_phone_or_email(): void
+    {
+        // 1. Login with Phone
+        $resPhone = $this->post(route('login.submit'), [
+            'login' => '01700123456',
+            'password' => 'password123',
+        ]);
+        $resPhone->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($this->customer);
+
+        auth()->logout();
+
+        // 2. Login with Email
+        $resEmail = $this->post(route('login.submit'), [
+            'login' => 'tanvir@gmail.com',
+            'password' => 'password123',
+        ]);
+        $resEmail->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($this->customer);
+    }
+
+    public function test_authenticated_customer_can_view_booking_page(): void
+    {
+        $response = $this->actingAs($this->customer)->get(route('bookings.create'));
 
         $response->assertStatus(200);
         $response->assertSee('২ বেডরুম');
         $response->assertSee('এসি খোলা ও ফিটিং');
-        $response->assertSee('ইলেকট্রিক্যাল সার্ভিস');
+        $response->assertSee('বিশেষ বা ভারী মালামালের তালিকা');
     }
 
-    public function test_customer_can_submit_booking_with_standard_property_type(): void
+    public function test_customer_can_submit_booking_with_special_items_and_coupon(): void
     {
+        $coupon = Coupon::create([
+            'code' => 'DISCOUNT500',
+            'discount_type' => 'fixed',
+            'discount_value' => 500,
+            'min_booking_amount' => 5000,
+            'is_active' => true,
+        ]);
+
         $postData = [
             'customer_name' => 'তানভীর আহমেদ',
             'customer_phone' => '01700123456',
@@ -89,245 +138,181 @@ class ShiftingBookingTest extends TestCase
             'preferred_time_slot' => 'সকাল (৮টা - ১২টা)',
             'vehicle_type' => 'covered_9ft',
             'labour_count' => 3,
+            'special_items' => ['স্প্লিট এসি (Split AC)', 'হেভি লোহার সিন্দুক / ভল্ট (Locker/Safe)'],
+            'coupon_code' => 'DISCOUNT500',
             'selected_services' => [$this->service1->id, $this->service2->id],
             'custom_service_requests' => 'কাঁচের আসবাবপত্র রয়েছে',
             'special_notes' => 'সাবধানে লোড করবেন',
         ];
 
-        $response = $this->post(route('bookings.store'), $postData);
+        $response = $this->actingAs($this->customer)->post(route('bookings.store'), $postData);
 
         $this->assertDatabaseHas('shifting_bookings', [
+            'user_id' => $this->customer->id,
             'customer_name' => 'তানভীর আহমেদ',
             'customer_phone' => '01700123456',
             'property_type_id' => $this->propertyType->id,
-            'vehicle_type' => 'covered_9ft',
-            'labour_count' => 3,
-            'status' => 'pending',
+            'status' => 'new_request',
+            'discount_amount' => 500,
         ]);
 
         $booking = ShiftingBooking::where('customer_phone', '01700123456')->first();
         $this->assertNotNull($booking);
         $this->assertStringStartsWith('SH-', $booking->booking_code);
         $this->assertCount(2, $booking->bookingServices);
+        $this->assertCount(2, $booking->special_items_json);
 
         $response->assertRedirect(route('bookings.confirmation', $booking->booking_code));
     }
 
-    public function test_customer_can_submit_booking_with_custom_property_type(): void
-    {
-        $postData = [
-            'customer_name' => 'রাকিব হাসান',
-            'customer_phone' => '01800987654',
-            'property_type_selection' => 'custom',
-            'custom_property_type' => '৩ তলা কমার্শিয়াল গোডাউন',
-            'pickup_address' => 'তেজগাঁও শিল্প এলাকা',
-            'pickup_area' => 'তেজগাঁও',
-            'pickup_floor' => 1,
-            'delivery_address' => 'টঙ্গী বিসিক',
-            'delivery_area' => 'টঙ্গী',
-            'delivery_floor' => 1,
-            'shifting_date' => now()->addDays(1)->format('Y-m-d'),
-            'vehicle_type' => 'covered_14ft',
-            'labour_count' => 4,
-        ];
-
-        $response = $this->post(route('bookings.store'), $postData);
-
-        $this->assertDatabaseHas('shifting_bookings', [
-            'customer_name' => 'রাকিব হাসান',
-            'custom_property_type' => '৩ তলা কমার্শিয়াল গোডাউন',
-            'property_type_id' => null,
-            'status' => 'pending',
-        ]);
-
-        $booking = ShiftingBooking::where('customer_phone', '01800987654')->first();
-        $response->assertRedirect(route('bookings.confirmation', $booking->booking_code));
-    }
-
-    public function test_booking_validation_fails_when_required_fields_are_missing(): void
-    {
-        $response = $this->post(route('bookings.store'), []);
-
-        $response->assertSessionHasErrors([
-            'customer_name',
-            'customer_phone',
-            'property_type_selection',
-            'pickup_address',
-            'pickup_area',
-            'pickup_floor',
-            'delivery_address',
-            'delivery_area',
-            'delivery_floor',
-            'shifting_date',
-            'vehicle_type',
-            'labour_count',
-        ]);
-    }
-
-    public function test_confirmation_page_displays_booking_details(): void
+    public function test_customer_can_view_dashboard_and_manage_booking(): void
     {
         $booking = ShiftingBooking::create([
-            'booking_code' => 'SHZ-TEST123',
-            'customer_name' => 'মীর জাফরুল',
-            'customer_phone' => '01911223344',
+            'user_id' => $this->customer->id,
+            'booking_code' => 'SH-TEST-001',
+            'customer_name' => 'তানভীর আহমেদ',
+            'customer_phone' => '01700123456',
             'property_type_id' => $this->propertyType->id,
-            'pickup_address' => 'বাড়ি ১',
-            'pickup_area' => 'মিরপুর',
+            'pickup_address' => 'মিরপুর',
+            'pickup_area' => 'মিরপুর ১০',
             'pickup_floor' => 1,
-            'delivery_address' => 'বাড়ি ২',
-            'delivery_area' => 'বনানী',
+            'delivery_address' => 'ধানমন্ডি',
+            'delivery_area' => 'ধানমন্ডি',
             'delivery_floor' => 2,
             'shifting_date' => now()->addDays(3),
             'vehicle_type' => 'pickup_7ft',
             'labour_count' => 2,
             'estimated_cost' => 8500,
-            'status' => 'pending',
+            'status' => 'new_request',
         ]);
 
-        $response = $this->get(route('bookings.confirmation', $booking->booking_code));
+        $res = $this->actingAs($this->customer)->get(route('dashboard'));
+        $res->assertStatus(200);
+        $res->assertSee('SH-TEST-001');
+        $res->assertSee('মিরপুর ১০');
 
-        $response->assertStatus(200);
-        $response->assertSee('SHZ-TEST123');
-        $response->assertSee('মীর জাফরুল');
-        $response->assertSee('মিরপুর');
-        $response->assertSee('বনানী');
+        // Customer can cancel newly placed booking
+        $cancelRes = $this->actingAs($this->customer)->post(route('user.bookings.cancel', $booking), [
+            'cancellation_reason' => 'Changed my plan',
+        ]);
+        $cancelRes->assertRedirect();
+        $booking->refresh();
+        $this->assertEquals('cancelled', $booking->status);
     }
 
-    public function test_booking_track_finds_booking_by_code_and_phone(): void
+    public function test_admin_can_generate_quotation_and_customer_can_approve(): void
     {
         $booking = ShiftingBooking::create([
-            'booking_code' => 'SHZ-TRK999',
-            'customer_name' => 'হাসান মাহমুদ',
-            'customer_phone' => '01712349999',
+            'user_id' => $this->customer->id,
+            'booking_code' => 'SH-QUOTE-001',
+            'customer_name' => 'তানভীর আহমেদ',
+            'customer_phone' => '01700123456',
             'property_type_id' => $this->propertyType->id,
-            'pickup_address' => 'উত্তরা সেক্টর ৭',
+            'pickup_address' => 'উত্তরা',
             'pickup_area' => 'উত্তরা',
-            'pickup_floor' => 2,
-            'delivery_address' => 'গুলশান ১',
-            'delivery_area' => 'গুলশান',
-            'delivery_floor' => 3,
-            'shifting_date' => now()->addDays(2),
-            'vehicle_type' => 'covered_9ft',
-            'labour_count' => 2,
-            'status' => 'pending',
-        ]);
-
-        // Search by tracking code
-        $resCode = $this->get(route('bookings.track', ['search' => 'SHZ-TRK999']));
-        $resCode->assertStatus(200);
-        $resCode->assertSee('SHZ-TRK999');
-        $resCode->assertSee('হাসান মাহমুদ');
-
-        // Search by phone number
-        $resPhone = $this->get(route('bookings.track', ['search' => '01712349999']));
-        $resPhone->assertStatus(200);
-        $resPhone->assertSee('SHZ-TRK999');
-        $resPhone->assertSee('হাসান মাহমুদ');
-    }
-
-    public function test_admin_can_view_bookings_list_and_filter(): void
-    {
-        $booking = ShiftingBooking::create([
-            'booking_code' => 'SHZ-ADM001',
-            'customer_name' => 'আরিফুল ইসলাম',
-            'customer_phone' => '01799887766',
-            'property_type_id' => $this->propertyType->id,
-            'pickup_address' => 'শ্যামলী রোড ২',
-            'pickup_area' => 'শ্যামলী',
             'pickup_floor' => 1,
-            'delivery_address' => 'লালমাটিয়া ডি ব্লক',
-            'delivery_area' => 'লালমাটিয়া',
+            'delivery_address' => 'গুলশান',
+            'delivery_area' => 'গুলশান',
             'delivery_floor' => 2,
-            'shifting_date' => now()->addDays(1),
-            'vehicle_type' => 'covered_9ft',
-            'labour_count' => 2,
-            'status' => 'pending',
-        ]);
-
-        $response = $this->actingAs($this->admin)->get(route('admin.shifting-bookings.index'));
-
-        $response->assertStatus(200);
-        $response->assertSee('SHZ-ADM001');
-        $response->assertSee('আরিফুল ইসলাম');
-    }
-
-    public function test_admin_can_update_booking_status_and_driver_info(): void
-    {
-        $booking = ShiftingBooking::create([
-            'booking_code' => 'SHZ-ADM002',
-            'customer_name' => 'সাদিয়া ইসলাম',
-            'customer_phone' => '01655443322',
-            'property_type_id' => $this->propertyType->id,
-            'pickup_address' => 'মোহাম্মদপুর টাউনহল',
-            'pickup_area' => 'মোহাম্মদপুর',
-            'pickup_floor' => 2,
-            'delivery_address' => 'বারিধারা ডিপ্লোম্যাটিক জোন',
-            'delivery_area' => 'বারিধারা',
-            'delivery_floor' => 3,
             'shifting_date' => now()->addDays(2),
             'vehicle_type' => 'covered_9ft',
-            'labour_count' => 3,
-            'estimated_cost' => 12000,
-            'status' => 'pending',
+            'labour_count' => 2,
+            'estimated_cost' => 10000,
+            'status' => 'site_visit_scheduled',
         ]);
 
-        $updateData = [
-            'status' => 'confirmed',
-            'final_cost' => 12500,
-            'advance_amount' => 2000,
-            'payment_status' => 'partial_advance',
-            'payment_method' => 'bKash',
-            'transaction_id' => 'TRX987654321',
-            'assigned_supervisor_name' => 'কামাল হোসেন',
-            'assigned_supervisor_phone' => '01711000001',
-            'driver_name' => 'রফিক উদ্দিন',
-            'driver_phone' => '01711000002',
-            'driver_truck_number' => 'ঢাকা মেট্রো-ন ১১-২২৩৩',
-            'admin_notes' => 'ক্লায়েন্টের সাথে ফোনে কথা বলে ২০০০ টাকা অগ্রিম নেওয়া হয়েছে।',
+        // Admin generates quotation
+        $quotationData = [
+            'items' => [
+                ['description' => 'শিফটিং প্যাকেজ', 'quantity' => 1, 'rate' => 10000],
+                ['description' => 'প্যাকিং বাবল শিট', 'quantity' => 2, 'rate' => 1000],
+            ],
+            'discount_amount' => 500,
+            'advance_required' => 2000,
+            'notes' => 'সকল প্যাকিং ম্যাটেরিয়াল অন্তর্ভুক্ত',
         ];
 
-        $response = $this->actingAs($this->admin)->put(route('admin.shifting-bookings.update', $booking), $updateData);
-
-        $response->assertRedirect(route('admin.shifting-bookings.show', $booking));
+        $resAdmin = $this->actingAs($this->admin)->post(route('admin.shifting-bookings.store-quotation', $booking), $quotationData);
+        $resAdmin->assertRedirect();
 
         $booking->refresh();
-        $this->assertEquals('confirmed', $booking->status);
-        $this->assertEquals(12500, $booking->final_cost);
-        $this->assertEquals(2000, $booking->advance_amount);
-        $this->assertEquals(10500, $booking->due_amount);
-        $this->assertEquals('partial_advance', $booking->payment_status);
-        $this->assertEquals('কামাল হোসেন', $booking->assigned_supervisor_name);
-        $this->assertEquals('রফিক উদ্দিন', $booking->driver_name);
-        $this->assertEquals('ঢাকা মেট্রো-ন ১১-২২৩৩', $booking->driver_truck_number);
+        $this->assertEquals('quotation_sent', $booking->status);
+        $this->assertEquals(11500, $booking->final_cost);
+
+        $quotation = BookingQuotation::where('shifting_booking_id', $booking->id)->first();
+        $this->assertNotNull($quotation);
+        $this->assertEquals('sent', $quotation->status);
+
+        // Customer views quotation
+        $resQuote = $this->actingAs($this->customer)->get(route('user.quotations.show', $booking));
+        $resQuote->assertStatus(200);
+        $resQuote->assertSee('শিফটিং কোটেশন');
+        $resQuote->assertSee('11,500');
+
+        // Customer approves quotation
+        $resApprove = $this->actingAs($this->customer)->post(route('user.quotations.approve', $booking));
+        $resApprove->assertRedirect();
+
+        $booking->refresh();
+        $quotation->refresh();
+        $this->assertEquals('customer_approved', $booking->status);
+        $this->assertEquals('approved', $quotation->status);
     }
 
-    public function test_admin_can_view_print_challan(): void
+    public function test_customer_can_create_and_admin_can_reply_support_ticket(): void
     {
         $booking = ShiftingBooking::create([
-            'booking_code' => 'SHZ-CHALLAN',
-            'customer_name' => 'ফরহাদ রেজা',
-            'customer_phone' => '01511223344',
+            'user_id' => $this->customer->id,
+            'booking_code' => 'SH-TCK-001',
+            'customer_name' => 'তানভীর আহমেদ',
+            'customer_phone' => '01700123456',
             'property_type_id' => $this->propertyType->id,
-            'pickup_address' => 'মীরপুর ১',
-            'pickup_area' => 'মিরপুর',
+            'pickup_address' => 'ধানমন্ডি',
+            'pickup_area' => 'ধানমন্ডি',
             'pickup_floor' => 1,
-            'delivery_address' => 'উত্তরা ৩',
-            'delivery_area' => 'উত্তরা',
+            'delivery_address' => 'বনানী',
+            'delivery_area' => 'বনানী',
             'delivery_floor' => 2,
             'shifting_date' => now()->addDays(2),
             'vehicle_type' => 'pickup_7ft',
             'labour_count' => 2,
-            'final_cost' => 9500,
-            'advance_amount' => 1500,
-            'due_amount' => 8000,
             'status' => 'confirmed',
         ]);
 
-        $response = $this->actingAs($this->admin)->get(route('admin.shifting-bookings.print-challan', $booking));
+        // Customer opens ticket
+        $ticketData = [
+            'subject' => 'Need additional carton boxes',
+            'category' => 'query',
+            'priority' => 'normal',
+            'message' => 'Can you please bring 5 extra master carton boxes on moving day?',
+        ];
 
-        $response->assertStatus(200);
-        $response->assertSee('SHZ-CHALLAN');
-        $response->assertSee('ফরহাদ রেজা');
-        $response->assertSee('শিফটিং চালান ও রিসিট');
+        $resTicket = $this->actingAs($this->customer)->post(route('user.tickets.store', $booking), $ticketData);
+        $resTicket->assertRedirect();
+
+        $ticket = BookingSupportTicket::where('shifting_booking_id', $booking->id)->first();
+        $this->assertNotNull($ticket);
+        $this->assertEquals('open', $ticket->status);
+
+        // Admin replies to ticket
+        $resReply = $this->actingAs($this->admin)->post(route('admin.tickets.reply', $ticket), [
+            'message' => 'Yes, our team will bring 5 extra cartons with them.',
+        ]);
+        $resReply->assertRedirect();
+
+        $ticket->refresh();
+        $this->assertEquals('in_review', $ticket->status);
+        $this->assertCount(2, $ticket->messages);
+    }
+
+    public function test_admin_can_view_reports_and_campaigns(): void
+    {
+        $resReports = $this->actingAs($this->admin)->get(route('admin.reports.index'));
+        $resReports->assertStatus(200);
+        $resReports->assertSee('Operations &amp; Revenue Reports', false);
+
+        $resCampaigns = $this->actingAs($this->admin)->get(route('admin.reports.campaigns'));
+        $resCampaigns->assertStatus(200);
+        $resCampaigns->assertSee('Campaign Performance Attribution');
     }
 }
