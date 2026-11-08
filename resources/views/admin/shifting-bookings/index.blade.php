@@ -1,14 +1,20 @@
 @extends('admin.layouts.app')
-@section('title', 'Shifting Bookings')
+@section('title', 'Shifting Bookings & Operations')
+
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="mb-1">Shifting Bookings (শিফটিং বুকিং ও ডিসপ্যাচ)</h4>
-            <p class="text-muted small mb-0">Manage customer booking requests, staff assignment, and status updates</p>
+            <h4 class="mb-1">Shifting Bookings (শিফটিং বুকিং ও অপারেশন)</h4>
+            <p class="text-muted small mb-0">Manage customer booking requests, quotations, dispatch, and lifecycle updates</p>
         </div>
-        <a href="{{ route('bookings.create') }}" target="_blank" class="btn btn-outline-primary">
-            <i class="bi bi-plus-lg me-1"></i> New Booking (Frontend)
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-bar-chart me-1"></i> Reports
+            </a>
+            <a href="{{ route('bookings.create') }}" target="_blank" class="btn btn-primary fw-semibold">
+                <i class="bi bi-plus-lg me-1"></i> New Booking
+            </a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -18,19 +24,31 @@
         </div>
     @endif
 
-    {{-- Status Filter Badges --}}
+    {{-- 10 Status Filter Badges (Image 1 specifications) --}}
     <div class="d-flex flex-wrap gap-2 mb-3">
         <a href="{{ route('admin.shifting-bookings.index') }}" class="btn btn-sm {{ !request('status') ? 'btn-dark' : 'btn-outline-secondary' }}">
             All ({{ $statusCounts['all'] }})
         </a>
-        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') === 'pending' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }}">
-            Pending ({{ $statusCounts['pending'] }})
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'new_request']) }}" class="btn btn-sm {{ request('status') === 'new_request' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }}">
+            New Request ({{ $statusCounts['new_request'] }})
+        </a>
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'contacted']) }}" class="btn btn-sm {{ request('status') === 'contacted' ? 'btn-info text-dark' : 'btn-outline-info text-dark' }}">
+            Contacted ({{ $statusCounts['contacted'] }})
+        </a>
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'assessment_required']) }}" class="btn btn-sm {{ request('status') === 'assessment_required' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+            Assessment Req ({{ $statusCounts['assessment_required'] }})
+        </a>
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'site_visit_scheduled']) }}" class="btn btn-sm {{ request('status') === 'site_visit_scheduled' ? 'btn-dark' : 'btn-outline-dark' }}">
+            Site Visit ({{ $statusCounts['site_visit_scheduled'] }})
+        </a>
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'quotation_sent']) }}" class="btn btn-sm {{ request('status') === 'quotation_sent' ? 'btn-primary' : 'btn-outline-primary' }}">
+            Quotation Sent ({{ $statusCounts['quotation_sent'] }})
+        </a>
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'customer_approved']) }}" class="btn btn-sm {{ request('status') === 'customer_approved' ? 'btn-info text-dark' : 'btn-outline-info text-dark' }}">
+            Customer Approved ({{ $statusCounts['customer_approved'] }})
         </a>
         <a href="{{ route('admin.shifting-bookings.index', ['status' => 'confirmed']) }}" class="btn btn-sm {{ request('status') === 'confirmed' ? 'btn-primary' : 'btn-outline-primary' }}">
             Confirmed ({{ $statusCounts['confirmed'] }})
-        </a>
-        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'team_assigned']) }}" class="btn btn-sm {{ request('status') === 'team_assigned' ? 'btn-info text-dark' : 'btn-outline-info text-dark' }}">
-            Team Assigned ({{ $statusCounts['team_assigned'] }})
         </a>
         <a href="{{ route('admin.shifting-bookings.index', ['status' => 'in_progress']) }}" class="btn btn-sm {{ request('status') === 'in_progress' ? 'btn-secondary' : 'btn-outline-secondary' }}">
             In Progress ({{ $statusCounts['in_progress'] }})
@@ -74,9 +92,10 @@
                         <th>Customer</th>
                         <th>Property &amp; Route</th>
                         <th>Shifting Date</th>
-                        <th>Est. Cost</th>
+                        <th>Est / Final Cost</th>
                         <th>Status</th>
                         <th>Payment</th>
+                        <th>Source</th>
                         <th class="text-end">Action</th>
                     </tr>
                 </thead>
@@ -99,23 +118,21 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="badge bg-light text-dark border mb-1">
-                                    {{ $booking->display_property_type }}
-                                </div>
-                                <div class="small">
-                                    <span class="text-primary">{{ $booking->pickup_area }}</span> (Fl: {{ $booking->pickup_floor }})
-                                    <i class="bi bi-arrow-right text-muted mx-1"></i>
-                                    <span class="text-success">{{ $booking->delivery_area }}</span> (Fl: {{ $booking->delivery_floor }})
+                                <div class="small fw-semibold text-dark">{{ $booking->display_property_type }}</div>
+                                <div class="small text-muted text-truncate" style="max-width: 220px;">
+                                    <span class="text-danger">●</span> {{ $booking->pickup_area }} ➔ <span class="text-success">●</span> {{ $booking->delivery_area }}
                                 </div>
                             </td>
                             <td>
-                                <div class="fw-semibold">{{ $booking->shifting_date->format('d M, Y') }}</div>
-                                <div class="text-muted small">{{ $booking->preferred_time_slot }}</div>
+                                <strong>{{ $booking->shifting_date->format('d M, Y') }}</strong>
+                                <div class="small text-muted">{{ $booking->preferred_time_slot }}</div>
                             </td>
                             <td>
-                                <span class="fw-bold text-dark">৳{{ number_format($booking->estimated_cost, 2) }}</span>
-                                @if($booking->advance_amount > 0)
-                                    <div class="small text-success">Adv: ৳{{ number_format($booking->advance_amount, 2) }}</div>
+                                <div class="fw-bold text-dark">৳{{ number_format($booking->final_cost ?: $booking->estimated_cost) }}</div>
+                                @if($booking->due_amount > 0)
+                                    <div class="small text-danger">Due: ৳{{ number_format($booking->due_amount) }}</div>
+                                @else
+                                    <div class="small text-success">Cleared</div>
                                 @endif
                             </td>
                             <td>
@@ -124,22 +141,27 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="badge {{ $booking->payment_status === 'paid_in_full' ? 'bg-success' : ($booking->payment_status === 'partial_advance' ? 'bg-info text-dark' : 'bg-secondary') }}">
+                                <span class="badge bg-light text-dark border">
                                     {{ $booking->payment_status_label_bn }}
                                 </span>
                             </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border small">
+                                    {{ $booking->utm_source ?: 'direct' }}
+                                </span>
+                            </td>
                             <td class="text-end">
-                                <a href="{{ route('admin.shifting-bookings.show', $booking) }}" class="btn btn-sm btn-outline-primary" title="View & Dispatch">
-                                    <i class="bi bi-eye"></i> Manage
+                                <a href="{{ route('admin.shifting-bookings.show', $booking) }}" class="btn btn-sm btn-outline-primary me-1" title="Manage & Dispatch">
+                                    <i class="bi bi-eye"></i> View
                                 </a>
-                                <a href="{{ route('admin.shifting-bookings.print-challan', $booking) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Print Challan">
+                                <a href="{{ route('admin.shifting-bookings.print-challan', $booking) }}" target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Challan">
                                     <i class="bi bi-printer"></i>
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">No shifting bookings found.</td>
+                            <td colspan="9" class="text-center py-4 text-muted">No shifting bookings found.</td>
                         </tr>
                     @endforelse
                 </tbody>

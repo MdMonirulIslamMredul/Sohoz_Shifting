@@ -125,6 +125,50 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            let lastNewBookingCount = null;
+            function playChimeSound() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                } catch (e) {}
+            }
+
+            function checkBookings() {
+                fetch('{{ route("admin.shifting-bookings.check-new") }}')
+                    .then(r => r.json())
+                    .then(data => {
+                        const badge = document.getElementById('newBookingCountBadge');
+                        if (!badge) return;
+                        if (data.new_count > 0) {
+                            badge.innerText = data.new_count;
+                            badge.style.display = 'inline-block';
+                            if (lastNewBookingCount !== null && data.new_count > lastNewBookingCount) {
+                                playChimeSound();
+                            }
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                        lastNewBookingCount = data.new_count;
+                    })
+                    .catch(() => {});
+            }
+
+            checkBookings();
+            setInterval(checkBookings, 20000);
+        })();
+    </script>
     @stack('scripts')
 </body>
 

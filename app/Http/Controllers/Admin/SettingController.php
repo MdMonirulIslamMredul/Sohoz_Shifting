@@ -37,6 +37,11 @@ class SettingController extends Controller
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
             'seo_keywords' => ['nullable', 'string', 'max:255'],
+            'meta_pixel_id' => ['nullable', 'string', 'max:50'],
+            'meta_capi_token' => ['nullable', 'string'],
+            'ga4_measurement_id' => ['nullable', 'string', 'max:50'],
+            'whatsapp_tracking_number' => ['nullable', 'string', 'max:30'],
+            'enable_marketing_tracking' => ['nullable', 'boolean'],
             'cta_title' => ['nullable', 'string', 'max:255'],
             'cta_text' => ['nullable', 'string'],
             'cta_button_text' => ['nullable', 'string', 'max:120'],
@@ -71,6 +76,7 @@ class SettingController extends Controller
         $data['accent_color'] = $this->normalizeColor($request->input('accent_color'), '#f39c12');
         $data['text_color'] = $this->normalizeColor($request->input('text_color'), '#333333');
         $data['bg_color'] = $this->normalizeColor($request->input('bg_color'), '#ffffff');
+        $data['enable_marketing_tracking'] = $request->boolean('enable_marketing_tracking');
 
         if ($request->hasAny(['facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'youtube_url'])) {
             $existingSocial = $setting->social_links ?? [];

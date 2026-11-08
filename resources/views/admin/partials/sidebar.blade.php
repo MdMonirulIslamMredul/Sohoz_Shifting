@@ -32,7 +32,7 @@
 
     {{-- Shifting Operations Menu --}}
     @php
-        $isShiftingActive = request()->routeIs(['admin.shifting-bookings.*', 'admin.property-types.*', 'admin.services.*']);
+        $isShiftingActive = request()->routeIs(['admin.shifting-bookings.*', 'admin.property-types.*', 'admin.services.*', 'admin.coupons.*', 'admin.tickets.*', 'admin.reports.*']);
     @endphp
     <a class="d-flex justify-content-between align-items-center {{ $isShiftingActive ? 'parent-active' : 'collapsed' }}"
         data-bs-toggle="collapse" href="#shiftingOpsMenu"
@@ -67,6 +67,18 @@
         <a href="{{ route('admin.services.index') }}"
             class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
             <i class="bi bi-tools me-2"></i>Services &amp; Pricing
+        </a>
+        <a href="{{ route('admin.coupons.index') }}"
+            class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+            <i class="bi bi-ticket-perforated me-2"></i>Coupons &amp; Discounts
+        </a>
+        <a href="{{ route('admin.tickets.index') }}"
+            class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
+            <i class="bi bi-chat-square-dots me-2"></i>Support &amp; Complaints
+        </a>
+        <a href="{{ route('admin.reports.index') }}"
+            class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+            <i class="bi bi-bar-chart-line me-2"></i>Reports &amp; Analytics
         </a>
     </div>
 

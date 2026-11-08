@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
+use App\Models\BookingSupportTicket;
 use App\Models\Contact;
+use App\Models\Coupon;
 use App\Models\Gallery;
 use App\Models\Partner;
 use App\Models\Product;
@@ -18,19 +20,27 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // 1. Shifting Booking Statistics
+        // 1. Shifting Booking Statistics (10 client pipeline stages)
         $bookingStats = [
             'total' => ShiftingBooking::count(),
-            'pending' => ShiftingBooking::where('status', 'pending')->count(),
+            'new_request' => ShiftingBooking::whereIn('status', ['new_request', 'pending'])->count(),
+            'pending' => ShiftingBooking::whereIn('status', ['new_request', 'pending'])->count(),
+            'contacted' => ShiftingBooking::where('status', 'contacted')->count(),
+            'assessment_required' => ShiftingBooking::where('status', 'assessment_required')->count(),
+            'site_visit_scheduled' => ShiftingBooking::where('status', 'site_visit_scheduled')->count(),
+            'quotation_sent' => ShiftingBooking::where('status', 'quotation_sent')->count(),
+            'customer_approved' => ShiftingBooking::where('status', 'customer_approved')->count(),
             'confirmed' => ShiftingBooking::where('status', 'confirmed')->count(),
-            'team_assigned' => ShiftingBooking::where('status', 'team_assigned')->count(),
+            'team_assigned' => 0,
             'in_progress' => ShiftingBooking::where('status', 'in_progress')->count(),
             'completed' => ShiftingBooking::where('status', 'completed')->count(),
             'cancelled' => ShiftingBooking::where('status', 'cancelled')->count(),
-            'active_operations' => ShiftingBooking::whereIn('status', ['team_assigned', 'in_progress'])->count(),
+            'active_operations' => ShiftingBooking::whereIn('status', ['confirmed', 'in_progress'])->count(),
             'total_estimated_value' => ShiftingBooking::whereNotIn('status', ['cancelled'])->sum('estimated_cost'),
             'total_advance_collected' => ShiftingBooking::whereNotIn('status', ['cancelled'])->sum('advance_amount'),
             'total_due' => ShiftingBooking::whereNotIn('status', ['cancelled'])->sum('due_amount'),
+            'open_tickets' => BookingSupportTicket::where('status', 'open')->count(),
+            'active_coupons' => Coupon::where('is_active', true)->count(),
         ];
 
         // 2. Services Statistics & List

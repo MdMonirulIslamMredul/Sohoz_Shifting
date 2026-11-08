@@ -8,6 +8,14 @@
         <strong class="text-truncate">Welcome, {{ auth()->user()->name }}</strong>
     </div>
     <div class="d-flex align-items-center gap-2 gap-sm-3">
+        {{-- Real-time New Booking Notification (Image 4 requirement) --}}
+        <a href="{{ route('admin.shifting-bookings.index', ['status' => 'new_request']) }}" class="btn btn-sm btn-outline-warning text-dark position-relative" id="bookingNotificationBell" title="New Booking Requests">
+            <i class="bi bi-bell-fill text-warning"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="newBookingCountBadge" style="font-size: 0.65rem; display: none;">
+                0
+            </span>
+        </a>
+
         <a href="{{ Route::has('home') ? route('home') : url('/') }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Frontend Website">
             <i class="bi bi-globe"></i>
         </a>

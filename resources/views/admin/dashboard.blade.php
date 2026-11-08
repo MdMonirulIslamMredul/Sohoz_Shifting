@@ -177,7 +177,7 @@
                         <span class="text-muted small fw-semibold text-uppercase">Active Operations</span>
                         <h2 class="fw-bold text-info-emphasis mb-1 mt-1">{{ $bookingStats['active_operations'] }}</h2>
                         <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-2 py-1" style="font-size: 0.75rem;">
-                            <i class="bi bi-truck me-1"></i> {{ $bookingStats['in_progress'] }} Moving / {{ $bookingStats['team_assigned'] }} Assigned
+                            <i class="bi bi-truck me-1"></i> {{ $bookingStats['in_progress'] }} In Progress / {{ $bookingStats['confirmed'] }} Confirmed
                         </span>
                     </div>
                     <div class="kpi-icon-box bg-info-subtle text-info">
@@ -230,37 +230,42 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('admin.shifting-bookings.index') }}" class="badge-pipeline bg-secondary-subtle text-dark">
-                <span>All Bookings</span>
-                <span class="badge bg-dark rounded-pill">{{ $bookingStats['total'] }}</span>
+                <span>All ({{ $bookingStats['total'] }})</span>
             </a>
-            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'pending']) }}" class="badge-pipeline bg-warning-subtle text-warning-emphasis">
-                <i class="bi bi-hourglass text-warning"></i>
-                <span>Pending</span>
-                <span class="badge bg-warning text-dark rounded-pill">{{ $bookingStats['pending'] }}</span>
+            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'new_request']) }}" class="badge-pipeline bg-warning-subtle text-warning-emphasis">
+                <span>New Request</span>
+                <span class="badge bg-warning text-dark rounded-pill">{{ $bookingStats['new_request'] }}</span>
+            </a>
+            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'contacted']) }}" class="badge-pipeline bg-info-subtle text-info-emphasis">
+                <span>Contacted</span>
+                <span class="badge bg-info text-dark rounded-pill">{{ $bookingStats['contacted'] }}</span>
+            </a>
+            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'site_visit_scheduled']) }}" class="badge-pipeline bg-dark-subtle text-dark">
+                <span>Site Visit</span>
+                <span class="badge bg-dark text-white rounded-pill">{{ $bookingStats['site_visit_scheduled'] }}</span>
+            </a>
+            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'quotation_sent']) }}" class="badge-pipeline bg-primary-subtle text-primary">
+                <span>Quote Sent</span>
+                <span class="badge bg-primary text-white rounded-pill">{{ $bookingStats['quotation_sent'] }}</span>
+            </a>
+            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'customer_approved']) }}" class="badge-pipeline bg-info-subtle text-dark">
+                <span>Approved</span>
+                <span class="badge bg-info text-dark rounded-pill">{{ $bookingStats['customer_approved'] }}</span>
             </a>
             <a href="{{ route('admin.shifting-bookings.index', ['status' => 'confirmed']) }}" class="badge-pipeline bg-primary-subtle text-primary">
-                <i class="bi bi-check-circle"></i>
                 <span>Confirmed</span>
                 <span class="badge bg-primary text-white rounded-pill">{{ $bookingStats['confirmed'] }}</span>
             </a>
-            <a href="{{ route('admin.shifting-bookings.index', ['status' => 'team_assigned']) }}" class="badge-pipeline bg-info-subtle text-info-emphasis">
-                <i class="bi bi-people"></i>
-                <span>Team Assigned</span>
-                <span class="badge bg-info text-dark rounded-pill">{{ $bookingStats['team_assigned'] }}</span>
-            </a>
             <a href="{{ route('admin.shifting-bookings.index', ['status' => 'in_progress']) }}" class="badge-pipeline bg-secondary-subtle text-secondary-emphasis">
-                <i class="bi bi-truck text-secondary"></i>
                 <span>In Progress</span>
                 <span class="badge bg-secondary text-white rounded-pill">{{ $bookingStats['in_progress'] }}</span>
             </a>
             <a href="{{ route('admin.shifting-bookings.index', ['status' => 'completed']) }}" class="badge-pipeline bg-success-subtle text-success">
-                <i class="bi bi-check2-all"></i>
                 <span>Completed</span>
                 <span class="badge bg-success text-white rounded-pill">{{ $bookingStats['completed'] }}</span>
             </a>
             @if($bookingStats['cancelled'] > 0)
                 <a href="{{ route('admin.shifting-bookings.index', ['status' => 'cancelled']) }}" class="badge-pipeline bg-danger-subtle text-danger">
-                    <i class="bi bi-x-circle"></i>
                     <span>Cancelled</span>
                     <span class="badge bg-danger text-white rounded-pill">{{ $bookingStats['cancelled'] }}</span>
                 </a>
