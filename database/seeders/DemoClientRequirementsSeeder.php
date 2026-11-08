@@ -20,11 +20,11 @@ class DemoClientRequirementsSeeder extends Seeder
     public function run(): void
     {
         // 1. Configure Admin Account
-        $admin = User::find(1);
+        $admin = User::where('email', 'admin@admin.com')->first() ?? User::find(1);
         if ($admin) {
             $admin->update([
                 'phone' => '01711000001',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('12345678'),
                 'is_admin' => true,
             ]);
         } else {
@@ -32,7 +32,7 @@ class DemoClientRequirementsSeeder extends Seeder
                 'name' => 'Admin User',
                 'email' => 'admin@admin.com',
                 'phone' => '01711000001',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('12345678'),
                 'is_admin' => true,
             ]);
         }
