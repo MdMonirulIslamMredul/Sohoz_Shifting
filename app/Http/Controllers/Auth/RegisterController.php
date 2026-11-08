@@ -20,13 +20,24 @@ class RegisterController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:25', 'unique:users,phone'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'address' => ['nullable', 'string', 'max:255'],
+        ], [
+            'phone.required' => 'আপনার মোবাইল নাম্বার দিন।',
+            'phone.unique' => 'এই মোবাইল নাম্বার দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে।',
+            'email.required' => 'আপনার ইমেইল অ্যাড্রেস দিন।',
+            'email.unique' => 'এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে।',
+            'password.min' => 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।',
+            'password.confirmed' => 'পাসওয়ার্ড নিশ্চিতকরণ মিলছে না।',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
+            'phone' => $data['phone'],
             'email' => $data['email'],
+            'address' => $data['address'] ?? null,
             'password' => $data['password'],
             'is_admin' => false,
         ]);
@@ -36,6 +47,7 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('home')->with('success', 'Registration completed successfully.');
+        return redirect()->intended(route('dashboard'))
+            ->with('success', 'স্বাগতম! আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।');
     }
 }

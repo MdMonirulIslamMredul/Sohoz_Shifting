@@ -27,34 +27,43 @@
                         <i class="bi bi-calendar2-check me-1"></i> বুকিং দিন
                     </a>
                 </li>
-                {{-- @guest
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
+
+                @guest
+                    <li class="nav-item ms-lg-1">
+                        <a class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold" href="{{ route('login') }}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> লগইন
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link " href="{{ route('register') }}">Register</a>
+                        <a class="btn btn-primary btn-sm px-3 py-2 fw-semibold text-white" href="{{ route('register') }}">
+                            <i class="bi bi-person-plus me-1"></i> রেজিস্টার
+                        </a>
                     </li>
-                @endguest --}}
+                @endguest
 
                 @auth
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button"
-                            data-bs-toggle="dropdown">{{ auth()->user()->name }}</a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                    <li class="nav-item dropdown ms-lg-2">
+                        <a class="nav-link dropdown-toggle btn btn-light btn-sm px-3 py-2 fw-semibold border text-dark" href="#" role="button"
+                            data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle text-primary me-1"></i> {{ auth()->user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                             @if (auth()->user()->is_admin)
-                                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('admin.logout') }}" method="POST" class="m-0">
                                         @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
+                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
                                     </form>
                                 </li>
                             @else
-                                <li><a class="dropdown-item" href="{{ route('dashboard') }}">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{{ route('dashboard') }}"><i class="bi bi-grid-fill me-2 text-primary"></i>আমার বুকিং ও ড্যাশবোর্ড</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST" class="m-0">
                                         @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
+                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>লগআউট</button>
                                     </form>
                                 </li>
                             @endif

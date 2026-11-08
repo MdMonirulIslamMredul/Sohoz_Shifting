@@ -17,10 +17,21 @@ class LoginController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
+        ], [
+            'login.required' => 'আপনার মোবাইল নাম্বার অথবা ইমেইল দিন।',
+            'password.required' => 'আপনার পাসওয়ার্ড দিন।',
         ]);
+
+        $loginInput = trim($request->input('login'));
+        $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        $credentials = [
+            $fieldType => $loginInput,
+            'password' => $request->input('password'),
+        ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -28,15 +39,16 @@ class LoginController extends Controller
             $user = $request->user();
 
             if ($user->is_admin) {
-                Auth::logout();
-
-                return back()->withErrors(['email' => 'This account is not a user account.'])->onlyInput('email');
+                return redirect()->intended(route('admin.dashboard'));
             }
 
-            return redirect()->route('dashboard')->with('success', 'Welcome back!');
+            return redirect()->intended(route('dashboard'))
+                ->with('success', 'স্বাগতম, ' . $user->name . '!');
         }
 
-        return back()->withErrors(['email' => 'Invalid email or password.'])->onlyInput('email');
+        return back()->withErrors([
+            'login' => 'প্রদত্ত মোবাইল/ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।',
+        ])->onlyInput('login');
     }
 
     public function logout(Request $request): RedirectResponse
@@ -45,6 +57,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('success', 'Logged out successfully.');
+        return redirect()->route('home')->with('success', 'সফলভাবে লগআউট হয়েছেন।');
     }
 }
