@@ -34,6 +34,33 @@
         color: #ffffff;
         transform: translateY(-2px);
     }
+    .special-item-badge {
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        background: #f8fafc;
+    }
+    .special-item-badge.selected {
+        border-color: #f59e0b;
+        background: #fffbeb;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+    }
+    .image-preview-thumb {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid #cbd5e1;
+    }
+    .image-preview-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 </style>
 @endpush
 
@@ -58,7 +85,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('bookings.store') }}" id="shiftingBookingForm">
+        <form method="POST" action="{{ route('bookings.store') }}" id="shiftingBookingForm" enctype="multipart/form-data">
             @csrf
             <div class="row g-4">
                 {{-- Left Column: Form Fields --}}
@@ -86,7 +113,7 @@
                                 </select>
                             </div>
 
-                            {{-- Manual Custom Property Type Input (Hidden unless "custom" is selected) --}}
+                            {{-- Manual Custom Property Type Input --}}
                             <div class="col-md-6" id="customPropertyTypeContainer" style="{{ old('property_type_selection') == 'custom' ? '' : 'display: none;' }}">
                                 <label class="form-label fw-bold text-primary">আপনার প্রপার্টির ধরন লিখুন <span class="text-danger">*</span></label>
                                 <input type="text" name="custom_property_type" id="customPropertyTypeInput" class="form-control form-control-lg border-primary" 
@@ -203,7 +230,7 @@
                             <div class="col-md-5">
                                 <label class="form-label fw-bold">দক্ষ লেবার সংখ্যা</label>
                                 <div class="input-group input-group-lg">
-                                    <input type="number" name="labour_count" id="labourCount" class="form-control" min="0" max="15" value="{{ old('labour_count', 0) }}">
+                                    <input type="number" name="labour_count" id="labourCount" class="form-control" min="0" max="15" value="{{ old('labour_count', 2) }}">
                                     <span class="input-group-text">জন</span>
                                 </div>
                                 <small class="text-muted">প্রতিজন অভিজ্ঞ লেবার ৳৮০০ (লোডিং-আনলোডিং)</small>
@@ -211,57 +238,142 @@
                         </div>
                     </div>
 
-                    {{-- 4. Dynamic Services & Manual Custom Services --}}
+                    {{-- 4. High-Value Special Items (Image 3 requirement) --}}
                     <div class="card booking-card p-4 mb-4 bg-white">
                         <div class="form-section-title d-flex align-items-center">
                             <span class="badge bg-primary rounded-circle p-2 me-2">৪</span>
-                            সার্ভিস ও বিশেষ নির্দেশনা
+                            বিশেষ বা ভারী মালামালের তালিকা (Special Items)
                         </div>
+                        <p class="text-muted small mb-3">নিচের বিশেষ মালামাল থাকলে সিলেক্ট করুন, যাতে আমাদের টিম প্রয়োজনীয় প্যাকিং ম্যাটেরিয়াল ও সাবধানতা অবলম্বন করতে পারে:</p>
 
-                        <p class="text-muted small mb-3">আপনার শিফটিংয়ের সুবিধার্থে নিচের প্রয়োজনীয় সার্ভিসগুলো বেছে নিন:</p>
+                        <div class="row g-2 mb-3">
+                            @php
+                                $presetSpecialItems = [
+                                    ['id' => 'item_ac', 'name' => 'স্প্লিট এসি (Split AC)', 'surcharge' => 800, 'icon' => 'bi-snow'],
+                                    ['id' => 'item_fridge', 'name' => 'বড় ফ্রিজ (Deep/Large Refrigerator)', 'surcharge' => 500, 'icon' => 'bi-box-seam'],
+                                    ['id' => 'item_safe', 'name' => 'হেভি লোহার সিন্দুক / ভল্ট (Locker/Safe)', 'surcharge' => 1200, 'icon' => 'bi-safe2'],
+                                    ['id' => 'item_piano', 'name' => 'পিয়ানো / মিউজিক্যাল ইন্সট্রুমেন্ট', 'surcharge' => 2000, 'icon' => 'bi-music-note-beamed'],
+                                    ['id' => 'item_glass', 'name' => 'কাঁচের ডাইনিং টেবিল / শোকেস', 'surcharge' => 500, 'icon' => 'bi-gem'],
+                                    ['id' => 'item_tv', 'name' => '৫৫"+ স্মার্ট টিভি / ওএলইডি টিভি', 'surcharge' => 400, 'icon' => 'bi-tv'],
+                                ];
+                            @endphp
 
-                        <div class="row g-3 mb-4">
-                            @foreach($addonServices as $service)
+                            @foreach($presetSpecialItems as $item)
                                 <div class="col-md-6">
-                                    <div class="p-3 border rounded-3 h-100 bg-light d-flex align-items-start">
-                                        <div class="form-check w-100">
-                                            <input class="form-check-input addon-service-checkbox" type="checkbox" name="selected_services[]" 
-                                                value="{{ $service->id }}" id="srv_{{ $service->id }}" data-price="{{ ($service->show_price && $service->price) ? $service->price : 0 }}"
-                                                {{ (is_array(old('selected_services')) && in_array($service->id, old('selected_services'))) ? 'checked' : '' }}>
-                                            <label class="form-check-label fw-bold text-dark ms-2" for="srv_{{ $service->id }}">
-                                                <i class="bi {{ $service->icon ?: 'bi-tools' }} text-primary me-1"></i>
-                                                {{ $service->title }}
-                                            </label>
-                                            @if($service->short_description)
-                                                <div class="text-muted small ms-4">{{ $service->short_description }}</div>
-                                            @endif
-                                            @if($service->show_price && (($service->pricing_type === 'fixed' && $service->price) || ($service->pricing_type === 'range' && $service->price_range)))
-                                                <div class="ms-4 mt-2">
-                                                    @if($service->pricing_type === 'fixed' && $service->price)
-                                                        <span class="badge bg-success py-1 px-2">৳{{ number_format($service->price) }}</span>
-                                                    @elseif($service->pricing_type === 'range' && $service->price_range)
-                                                        <span class="badge bg-primary py-1 px-2">{{ $service->price_range }}</span>
-                                                    @endif
-                                                </div>
-                                            @else
-                                                <div class="ms-4 mt-2 p-2 rounded bg-white border border-secondary border-opacity-25 shadow-sm small">
-                                                    <div class="text-secondary fw-bold" style="font-size: 0.82rem;">
-                                                        <i class="bi bi-calculator text-primary me-1"></i>আনুমানিক খরচ
-                                                    </div>
-                                                    <div class="my-1">
-                                                        <span class="badge bg-warning text-dark fw-bold">
-                                                            <i class="bi bi-telephone-fill me-1"></i>কল করে জানানো হবে
-                                                        </span>
-                                                    </div>
-                                                    <div class="text-muted" style="font-size: 0.78rem; line-height: 1.35;">
-                                                        মূল্য দূরত্ব, ফ্লোর ও মালের পরিমাণের উপর নির্ভর করে।
-                                                    </div>
-                                                </div>
-                                            @endif
+                                    <label class="special-item-badge d-flex align-items-center justify-content-between w-100" for="{{ $item['id'] }}">
+                                        <div class="d-flex align-items-center">
+                                            <input class="form-check-input special-item-check me-2" type="checkbox" name="special_items[]" 
+                                                value="{{ $item['name'] }}" id="{{ $item['id'] }}" data-surcharge="{{ $item['surcharge'] }}">
+                                            <div>
+                                                <i class="bi {{ $item['icon'] }} text-primary me-1"></i>
+                                                <span class="fw-semibold text-dark">{{ $item['name'] }}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <span class="badge bg-light text-secondary border">+৳{{ number_format($item['surcharge']) }}</span>
+                                    </label>
                                 </div>
                             @endforeach
+                        </div>
+                    </div>
+
+                    {{-- 5. Luggage & Room Photos Upload (Image 3 requirement) --}}
+                    <div class="card booking-card p-4 mb-4 bg-white">
+                        <div class="form-section-title d-flex align-items-center">
+                            <span class="badge bg-primary rounded-circle p-2 me-2">৫</span>
+                            মালামালের ছবি আপলোড (Luggage & Furniture Photos)
+                        </div>
+                        <p class="text-muted small mb-3">রুমের বা বিশেষ মালামালের ছবি আপলোড করলে আমরা সঠিক সাইজের গাড়ি ও নির্ভুল কোটেশন দিতে পারব (সর্বোচ্চ ১০টি ছবি):</p>
+
+                        <div class="border border-2 border-dashed rounded-3 p-4 text-center bg-light mb-3">
+                            <i class="bi bi-cloud-arrow-up fs-1 text-primary mb-2 d-block"></i>
+                            <label for="luggageImagesInput" class="btn btn-outline-primary btn-sm px-4 fw-bold mb-2">
+                                <i class="bi bi-images me-1"></i> ছবি নির্বাচন করুন
+                            </label>
+                            <input type="file" name="luggage_images[]" id="luggageImagesInput" class="d-none" multiple accept="image/*">
+                            <div class="text-muted small">JPG, PNG, WEBP ফরম্যাট (প্রতিটি সর্বোচ্চ ৫MB)</div>
+                        </div>
+
+                        {{-- Image previews container --}}
+                        <div id="imagePreviewContainer" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+
+                    {{-- 6. Categorized Services & Custom Requests --}}
+                    <div class="card booking-card p-4 mb-4 bg-white">
+                        <div class="form-section-title d-flex align-items-center">
+                            <span class="badge bg-primary rounded-circle p-2 me-2">৬</span>
+                            প্যাকিং ও অন্যান্য সার্ভিস
+                        </div>
+
+                        {{-- Nav tabs for categorized services --}}
+                        <ul class="nav nav-pills mb-3" id="serviceTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active fw-semibold" id="packing-tab" data-bs-toggle="pill" data-bs-target="#tab-packing" type="button">
+                                    <i class="bi bi-box-seam me-1"></i> প্যাকিং সার্ভিস
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link fw-semibold" id="labour-tab" data-bs-toggle="pill" data-bs-target="#tab-labour" type="button">
+                                    <i class="bi bi-people me-1"></i> লেবার সার্ভিস
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link fw-semibold" id="electrical-tab" data-bs-toggle="pill" data-bs-target="#tab-electrical" type="button">
+                                    <i class="bi bi-lightning-charge me-1"></i> এসি ও ইলেকট্রিক্যাল
+                                </button>
+                            </li>
+                            @if(count($categorizedServices['others']) > 0)
+                                <li class="nav-item">
+                                    <button class="nav-link fw-semibold" id="others-tab" data-bs-toggle="pill" data-bs-target="#tab-others" type="button">
+                                        <i class="bi bi-grid me-1"></i> অন্যান্য
+                                    </button>
+                                </li>
+                            @endif
+                        </ul>
+
+                        <div class="tab-content mb-4" id="serviceTabsContent">
+                            {{-- Packing Tab --}}
+                            <div class="tab-pane fade show active" id="tab-packing" role="tabpanel">
+                                <div class="row g-3">
+                                    @forelse($categorizedServices['packing'] as $service)
+                                        @include('frontend.bookings.partials.service-card', ['service' => $service])
+                                    @empty
+                                        <div class="col-12 text-muted small">কোনো নির্দিষ্ট প্যাকিং সার্ভিস পাওয়া যায়নি।</div>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            {{-- Labour Tab --}}
+                            <div class="tab-pane fade" id="tab-labour" role="tabpanel">
+                                <div class="row g-3">
+                                    @forelse($categorizedServices['labour'] as $service)
+                                        @include('frontend.bookings.partials.service-card', ['service' => $service])
+                                    @empty
+                                        <div class="col-12 text-muted small">কোনো নির্দিষ্ট লেবার সার্ভিস পাওয়া যায়নি।</div>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            {{-- Electrical Tab --}}
+                            <div class="tab-pane fade" id="tab-electrical" role="tabpanel">
+                                <div class="row g-3">
+                                    @forelse($categorizedServices['electrical'] as $service)
+                                        @include('frontend.bookings.partials.service-card', ['service' => $service])
+                                    @empty
+                                        <div class="col-12 text-muted small">কোনো নির্দিষ্ট এসি/ইলেকট্রিক্যাল সার্ভিস পাওয়া যায়নি।</div>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            {{-- Others Tab --}}
+                            @if(count($categorizedServices['others']) > 0)
+                                <div class="tab-pane fade" id="tab-others" role="tabpanel">
+                                    <div class="row g-3">
+                                        @foreach($categorizedServices['others'] as $service)
+                                            @include('frontend.bookings.partials.service-card', ['service' => $service])
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Manual Custom Service Input Box --}}
@@ -270,43 +382,43 @@
                                 <i class="bi bi-pencil-fill text-warning me-1"></i>অন্য কোনো বিশেষ সার্ভিস বা মালামালের নির্দেশনা প্রয়োজন?
                             </label>
                             <textarea name="custom_service_requests" class="form-control" rows="2" 
-                                placeholder="e.g. একটি বড় পিয়ানো আছে, কাঁচের ডাইনিং টেবিল বিশেষ বাবল শিট দিয়ে প্যাক করতে হবে, ওয়াল ড্রিলিং সার্ভিস...">{{ old('custom_service_requests') }}</textarea>
+                                placeholder="e.g. বিশেষ বাবল শিট দিয়ে কাঁচ প্যাক করতে হবে, ওয়াল ড্রিলিং সার্ভিস...">{{ old('custom_service_requests') }}</textarea>
                             <small class="text-muted">আপনার যেকোনো বিশেষ চাহিদা থাকলে এখানে উল্লেখ করুন, আমাদের টিম সে অনুযায়ী প্রস্তুতি নিয়ে আসবে।</small>
                         </div>
                     </div>
 
-                    {{-- 5. Customer Details --}}
+                    {{-- 7. Customer Details --}}
                     <div class="card booking-card p-4 bg-white">
                         <div class="form-section-title d-flex align-items-center">
-                            <span class="badge bg-primary rounded-circle p-2 me-2">৫</span>
+                            <span class="badge bg-primary rounded-circle p-2 me-2">৭</span>
                             আপনার যোগাযোগের তথ্য
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">আপনার পুরো নাম <span class="text-danger">*</span></label>
-                                <input type="text" name="customer_name" class="form-control form-control-lg" placeholder="e.g. মোঃ তানভীর আহমেদ" value="{{ old('customer_name') }}" required>
+                                <input type="text" name="customer_name" class="form-control form-control-lg" placeholder="e.g. মোঃ তানভীর আহমেদ" value="{{ old('customer_name', auth()->user()?->name) }}" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">মোবাইল নাম্বার <span class="text-danger">*</span></label>
-                                <input type="tel" name="customer_phone" class="form-control form-control-lg" placeholder="e.g. 017XXXXXXXX" value="{{ old('customer_phone') }}" required>
+                                <input type="tel" name="customer_phone" class="form-control form-control-lg" placeholder="e.g. 017XXXXXXXX" value="{{ old('customer_phone', auth()->user()?->phone) }}" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">হোয়াটসঅ্যাপ নাম্বার (যদি ভিন্ন হয়)</label>
-                                <input type="tel" name="customer_whatsapp" class="form-control form-control-lg" placeholder="e.g. 018XXXXXXXX" value="{{ old('customer_whatsapp') }}">
+                                <input type="tel" name="customer_whatsapp" class="form-control form-control-lg" placeholder="e.g. 018XXXXXXXX" value="{{ old('customer_whatsapp', auth()->user()?->phone) }}">
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">ইমেইল (ঐচ্ছিক)</label>
-                                <input type="email" name="customer_email" class="form-control form-control-lg" placeholder="e.g. tanvir@gmail.com" value="{{ old('customer_email') }}">
+                                <input type="email" name="customer_email" class="form-control form-control-lg" placeholder="e.g. tanvir@gmail.com" value="{{ old('customer_email', auth()->user()?->email) }}">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Right Column: Live Estimate & Submit --}}
+                {{-- Right Column: Live Estimate & Coupon & Submit --}}
                 <div class="col-lg-4">
                     <div class="card cost-preview-card p-4 shadow-lg sticky-top" style="top: 100px;">
                         <h5 class="fw-bold text-warning mb-3">
@@ -334,8 +446,30 @@
                         </div>
 
                         <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+                            <span class="text-light opacity-75">বিশেষ মালামাল হ্যান্ডলিং:</span>
+                            <span class="fw-bold" id="estSpecialRate">৳০</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
                             <span class="text-light opacity-75">অতিরিক্ত সার্ভিস:</span>
                             <span class="fw-bold" id="estAddonRate">৳০</span>
+                        </div>
+
+                        {{-- Coupon Box --}}
+                        <div class="my-3 p-2 rounded bg-black bg-opacity-25 border border-secondary border-opacity-50">
+                            <label class="form-label small fw-bold text-warning mb-1">
+                                <i class="bi bi-ticket-perforated me-1"></i>কুপন কোড (Discounts)
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="coupon_code" id="couponCodeInput" class="form-control text-uppercase" placeholder="e.g. SOHOZ500">
+                                <button type="button" id="applyCouponBtn" class="btn btn-warning fw-bold text-dark">প্রয়োগ</button>
+                            </div>
+                            <div id="couponMessage" class="small mt-1" style="display: none;"></div>
+                        </div>
+
+                        <div id="couponDiscountRow" class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25 text-success" style="display: none !important;">
+                            <span>কুপন ছাড় (Discount):</span>
+                            <span class="fw-bold" id="estDiscountRate">-৳০</span>
                         </div>
 
                         <div class="py-3 mt-2 text-center">
@@ -374,14 +508,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const vehicleType = document.getElementById('vehicleType');
     const labourCount = document.getElementById('labourCount');
     const addonCheckboxes = document.querySelectorAll('.addon-service-checkbox');
+    const specialItemChecks = document.querySelectorAll('.special-item-check');
 
     // Display elements
     const estBaseRate = document.getElementById('estBaseRate');
     const estFloorRate = document.getElementById('estFloorRate');
     const estVehicleRate = document.getElementById('estVehicleRate');
     const estLabourRate = document.getElementById('estLabourRate');
+    const estSpecialRate = document.getElementById('estSpecialRate');
     const estAddonRate = document.getElementById('estAddonRate');
+    const estDiscountRate = document.getElementById('estDiscountRate');
+    const couponDiscountRow = document.getElementById('couponDiscountRow');
     const estTotalCost = document.getElementById('estTotalCost');
+
+    // Coupon elements
+    const couponCodeInput = document.getElementById('couponCodeInput');
+    const applyCouponBtn = document.getElementById('applyCouponBtn');
+    const couponMessage = document.getElementById('couponMessage');
+    let appliedDiscount = 0;
 
     function toggleCustomInput() {
         if (propertyTypeSelect.value === 'custom') {
@@ -398,82 +542,154 @@ document.addEventListener('DOMContentLoaded', function () {
         let baseRate = 0;
         if (propertyTypeSelect && propertyTypeSelect.selectedIndex >= 0) {
             const selectedOption = propertyTypeSelect.options[propertyTypeSelect.selectedIndex];
-            if (selectedOption && selectedOption.value && selectedOption.value !== '' && selectedOption.dataset.price) {
+            if (selectedOption && selectedOption.dataset.price) {
                 baseRate = parseFloat(selectedOption.dataset.price) || 0;
+            } else if (propertyTypeSelect.value === 'custom') {
+                baseRate = 4500;
             }
         }
 
-        // Floor penalties (300 BDT per floor above 1st if no lift) - only apply if property is selected
-        let floorCost = 0;
-        if (baseRate > 0 || (propertyTypeSelect && propertyTypeSelect.value === 'custom')) {
-            const pFloor = parseInt(pickupFloor.value) || 1;
-            const dFloor = parseInt(deliveryFloor.value) || 1;
-            if (!pickupLift.checked && pFloor > 1) {
-                floorCost += (pFloor - 1) * 300;
-            }
-            if (!deliveryLift.checked && dFloor > 1) {
-                floorCost += (dFloor - 1) * 300;
-            }
+        let floorRate = 0;
+        const pFloor = parseInt(pickupFloor ? pickupFloor.value : 1) || 1;
+        const pLift = pickupLift ? pickupLift.checked : false;
+        if (!pLift && pFloor > 1) {
+            floorRate += (pFloor - 1) * 300;
         }
 
-        // Vehicle cost (0 if unselected)
-        let vCost = 0;
+        const dFloor = parseInt(deliveryFloor ? deliveryFloor.value : 1) || 1;
+        const dLift = deliveryLift ? deliveryLift.checked : false;
+        if (!dLift && dFloor > 1) {
+            floorRate += (dFloor - 1) * 300;
+        }
+
+        let vehicleRate = 0;
         if (vehicleType && vehicleType.selectedIndex >= 0) {
-            const vOption = vehicleType.options[vehicleType.selectedIndex];
-            if (vOption && vOption.value) {
-                vCost = parseFloat(vOption.dataset.price || 0);
+            const selectedVehicle = vehicleType.options[vehicleType.selectedIndex];
+            if (selectedVehicle && selectedVehicle.dataset.price) {
+                vehicleRate = parseFloat(selectedVehicle.dataset.price) || 0;
             }
         }
 
-        // Labour cost (800 BDT per labour, 0 if 0)
-        const lCount = parseInt(labourCount.value) || 0;
-        const lCost = lCount * 800;
+        const lCount = parseInt(labourCount ? labourCount.value : 0) || 0;
+        const labourRate = lCount * 800;
 
-        // Addons cost
-        let addonCost = 0;
-        addonCheckboxes.forEach(cb => {
+        let specialRate = 0;
+        specialItemChecks.forEach(cb => {
             if (cb.checked) {
-                addonCost += parseFloat(cb.dataset.price || 0);
+                specialRate += parseFloat(cb.dataset.surcharge || 0);
             }
         });
 
-        function formatBnMoney(amount) {
-            return '৳' + Number(amount).toLocaleString('bn-BD');
-        }
-
-        estBaseRate.textContent = formatBnMoney(baseRate);
-        estFloorRate.textContent = formatBnMoney(floorCost);
-        estVehicleRate.textContent = formatBnMoney(vCost);
-        estLabourRate.textContent = formatBnMoney(lCost);
-        estAddonRate.textContent = formatBnMoney(addonCost);
-        estTotalCost.textContent = formatBnMoney(total);
-
-        const estNote = document.getElementById('bookingEstNote');
-        if (estNote) {
-            if (total > 0) {
-                estNote.textContent = '*ফোন কলের মাধ্যমে চূড়ান্ত খরচ নিশ্চিত করা হবে';
-            } else {
-                estNote.textContent = '*সার্ভিস নির্বাচন করলে স্বয়ংক্রিয়ভাবে খরচ হিসেব হবে';
+        let addonRate = 0;
+        addonCheckboxes.forEach(cb => {
+            if (cb.checked) {
+                addonRate += parseFloat(cb.dataset.price || 0);
             }
-        }
+        });
+
+        const grossTotal = baseRate + floorRate + vehicleRate + labourRate + specialRate + addonRate;
+        const netTotal = Math.max(0, grossTotal - appliedDiscount);
+
+        // Update UI
+        if (estBaseRate) estBaseRate.innerText = '৳' + baseRate.toLocaleString();
+        if (estFloorRate) estFloorRate.innerText = '৳' + floorRate.toLocaleString();
+        if (estVehicleRate) estVehicleRate.innerText = '৳' + vehicleRate.toLocaleString();
+        if (estLabourRate) estLabourRate.innerText = '৳' + labourRate.toLocaleString();
+        if (estSpecialRate) estSpecialRate.innerText = '৳' + specialRate.toLocaleString();
+        if (estAddonRate) estAddonRate.innerText = '৳' + addonRate.toLocaleString();
+        if (estDiscountRate) estDiscountRate.innerText = '-৳' + appliedDiscount.toLocaleString();
+        if (estTotalCost) estTotalCost.innerText = '৳' + netTotal.toLocaleString();
+
+        return grossTotal;
     }
 
-    propertyTypeSelect.addEventListener('change', function () {
-        toggleCustomInput();
-        calculateEstimate();
+    // Special items styling sync
+    specialItemChecks.forEach(cb => {
+        cb.addEventListener('change', function () {
+            const parent = this.closest('.special-item-badge');
+            if (parent) {
+                if (this.checked) parent.classList.add('selected');
+                else parent.classList.remove('selected');
+            }
+            calculateEstimate();
+        });
     });
 
-    [pickupFloor, pickupLift, deliveryFloor, deliveryLift, vehicleType, labourCount].forEach(el => {
-        el.addEventListener('input', calculateEstimate);
-        el.addEventListener('change', calculateEstimate);
-    });
+    // Image Upload Preview
+    const luggageImagesInput = document.getElementById('luggageImagesInput');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    if (luggageImagesInput && imagePreviewContainer) {
+        luggageImagesInput.addEventListener('change', function () {
+            imagePreviewContainer.innerHTML = '';
+            Array.from(this.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const thumb = document.createElement('div');
+                        thumb.className = 'image-preview-thumb shadow-sm';
+                        thumb.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                        imagePreviewContainer.appendChild(thumb);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
 
-    addonCheckboxes.forEach(cb => {
-        cb.addEventListener('change', calculateEstimate);
-    });
+    // Coupon Apply Action
+    if (applyCouponBtn && couponCodeInput) {
+        applyCouponBtn.addEventListener('click', function () {
+            const code = couponCodeInput.value.trim();
+            if (!code) return;
 
-    // Run on init
-    toggleCustomInput();
+            const currentAmount = calculateEstimate();
+            couponMessage.style.display = 'block';
+            couponMessage.className = 'small text-warning';
+            couponMessage.innerText = 'যাচাই করা হচ্ছে...';
+
+            fetch('{{ route("bookings.check-coupon") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ code: code, amount: currentAmount })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    appliedDiscount = parseFloat(data.discount) || 0;
+                    couponMessage.className = 'small text-success fw-bold';
+                    couponMessage.innerText = data.message;
+                    couponDiscountRow.style.setProperty('display', 'flex', 'important');
+                    calculateEstimate();
+                } else {
+                    appliedDiscount = 0;
+                    couponMessage.className = 'small text-danger';
+                    couponMessage.innerText = data.message || 'কুপন প্রযোজ্য নয়।';
+                    couponDiscountRow.style.setProperty('display', 'none', 'important');
+                    calculateEstimate();
+                }
+            })
+            .catch(() => {
+                appliedDiscount = 0;
+                couponMessage.className = 'small text-danger';
+                couponMessage.innerText = 'সার্ভারে সমস্যা হচ্ছে, অনুগ্রহ করে পরে চেষ্টা করুন।';
+            });
+        });
+    }
+
+    // Event listeners for recalculation
+    if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', () => { toggleCustomInput(); calculateEstimate(); });
+    if (pickupFloor) pickupFloor.addEventListener('input', calculateEstimate);
+    if (pickupLift) pickupLift.addEventListener('change', calculateEstimate);
+    if (deliveryFloor) deliveryFloor.addEventListener('input', calculateEstimate);
+    if (deliveryLift) deliveryLift.addEventListener('change', calculateEstimate);
+    if (vehicleType) vehicleType.addEventListener('change', calculateEstimate);
+    if (labourCount) labourCount.addEventListener('input', calculateEstimate);
+    addonCheckboxes.forEach(cb => cb.addEventListener('change', calculateEstimate));
+
+    // Initial run
     calculateEstimate();
 });
 </script>
