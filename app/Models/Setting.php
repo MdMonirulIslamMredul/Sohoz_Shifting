@@ -35,11 +35,17 @@ class Setting extends Model
         'contact_phone',
         'contact_address',
         'google_map_embed',
+        'meta_pixel_id',
+        'meta_capi_token',
+        'ga4_measurement_id',
+        'whatsapp_tracking_number',
+        'enable_marketing_tracking',
         'social_links',
     ];
 
     protected $casts = [
         'social_links' => 'array',
         'hero_slider_images' => 'array',
+        'enable_marketing_tracking' => 'boolean',
     ];
 }

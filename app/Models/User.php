@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'is_admin'])]
+#[Fillable(['name', 'email', 'phone', 'address', 'password', 'is_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +28,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(ShiftingBooking::class)->latest();
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(BookingSupportTicket::class)->latest();
     }
 }
