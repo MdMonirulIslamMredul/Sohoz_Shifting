@@ -76,7 +76,11 @@ class SettingController extends Controller
         $data['accent_color'] = $this->normalizeColor($request->input('accent_color'), '#f39c12');
         $data['text_color'] = $this->normalizeColor($request->input('text_color'), '#333333');
         $data['bg_color'] = $this->normalizeColor($request->input('bg_color'), '#ffffff');
-        $data['enable_marketing_tracking'] = $request->boolean('enable_marketing_tracking');
+        if ($request->hasAny(['enable_marketing_tracking', 'meta_pixel_id', 'ga4_measurement_id', 'whatsapp_tracking_number', 'meta_capi_token'])) {
+            $data['enable_marketing_tracking'] = $request->boolean('enable_marketing_tracking');
+        } else {
+            unset($data['enable_marketing_tracking']);
+        }
 
         if ($request->hasAny(['facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'youtube_url'])) {
             $existingSocial = $setting->social_links ?? [];
