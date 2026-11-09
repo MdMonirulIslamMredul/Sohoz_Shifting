@@ -218,6 +218,142 @@
                 </div>
             </div>
 
+            {{-- Marketing & Tracking Suite (Meta Pixel, GA4, CAPI, WhatsApp) --}}
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h5 class="card-title text-dark fw-bold mb-1 d-flex align-items-center gap-2">
+                                <i class="bi bi-graph-up-arrow text-primary"></i> Marketing, Pixels &amp; Sales Tracking Suite
+                            </h5>
+                            <div class="text-secondary small">Meta (Facebook) Pixel, Google Analytics 4 (GA4), Conversion API (CAPI) এবং WhatsApp ট্র্যাকিং কনফিগার করুন</div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">
+                            <i class="bi bi-check2-circle me-1"></i> Full Website Pixel Active
+                        </span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            {{-- Meta Pixel ID --}}
+                            <div class="col-md-6">
+                                <label for="meta_pixel_id" class="form-label fw-semibold text-dark">
+                                    <i class="bi bi-facebook text-primary me-1"></i> Meta (Facebook) Pixel ID
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-primary border-end-0">
+                                        <i class="bi bi-tag-fill"></i>
+                                    </span>
+                                    <input type="text" id="meta_pixel_id" name="meta_pixel_id"
+                                        class="form-control border-start-0 font-monospace @error('meta_pixel_id') is-invalid @enderror"
+                                        value="{{ old('meta_pixel_id', $setting->meta_pixel_id) }}"
+                                        placeholder="e.g. 1234567890123456">
+                                    @error('meta_pixel_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="form-text text-secondary">
+                                    ফেসবুক অ্যাডস লিড ও কনভার্সন ট্র্যাকিং পিক্সেল আইডি (Meta Events Manager হতে প্রাপ্ত)।
+                                </div>
+                            </div>
+
+                            {{-- GA4 Measurement ID --}}
+                            <div class="col-md-6">
+                                <label for="ga4_measurement_id" class="form-label fw-semibold text-dark">
+                                    <i class="bi bi-google text-danger me-1"></i> Google Analytics 4 (GA4) Measurement ID
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-danger border-end-0">
+                                        <i class="bi bi-bar-chart-fill"></i>
+                                    </span>
+                                    <input type="text" id="ga4_measurement_id" name="ga4_measurement_id"
+                                        class="form-control border-start-0 font-monospace @error('ga4_measurement_id') is-invalid @enderror"
+                                        value="{{ old('ga4_measurement_id', $setting->ga4_measurement_id) }}"
+                                        placeholder="e.g. G-XXXXXXXXXX">
+                                    @error('ga4_measurement_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="form-text text-secondary">
+                                    গুগল অ্যানালিটিক্স ৪ প্রোপার্টি মেজারমেন্ট আইডি।
+                                </div>
+                            </div>
+
+                            {{-- WhatsApp Click Tracking Hotline --}}
+                            <div class="col-md-6">
+                                <label for="whatsapp_tracking_number" class="form-label fw-semibold text-dark">
+                                    <i class="bi bi-whatsapp text-success me-1"></i> WhatsApp Click Tracking Hotline
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-success border-end-0">
+                                        <i class="bi bi-telephone-outbound-fill"></i>
+                                    </span>
+                                    <input type="text" id="whatsapp_tracking_number" name="whatsapp_tracking_number"
+                                        class="form-control border-start-0 font-monospace @error('whatsapp_tracking_number') is-invalid @enderror"
+                                        value="{{ old('whatsapp_tracking_number', $setting->whatsapp_tracking_number) }}"
+                                        placeholder="e.g. 8801700000000">
+                                    @error('whatsapp_tracking_number')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="form-text text-secondary">
+                                    হোয়াটসঅ্যাপ ক্লিক ট্র্যাকিং ও সরাসরি চ্যাটের নাম্বার (কান্ট্রি কোড সহ)।
+                                </div>
+                            </div>
+
+                            {{-- Enable Marketing Tracking Switch --}}
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark">Tracking Status</label>
+                                <div class="p-2 border rounded-3 bg-light">
+                                    <div class="form-check form-switch pt-1">
+                                        <input class="form-check-input" type="checkbox" name="enable_marketing_tracking" id="enableMarketingSwitch" value="1"
+                                            {{ old('enable_marketing_tracking', $setting->enable_marketing_tracking ?? true) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold text-dark" for="enableMarketingSwitch">
+                                            পিক্সেল ও অ্যানালিটিক্স স্ক্রিপ্ট চালু রাখুন (Enable Tracking)
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">টিক দেওয়া থাকলে ওয়েবসাইটে পিক্সেল ও অ্যানালিটিক্স কোড সক্রিয় থাকবে।</small>
+                                </div>
+                            </div>
+
+                            {{-- Meta Conversion API (CAPI) --}}
+                            <div class="col-12">
+                                <label for="meta_capi_token" class="form-label fw-semibold text-dark">
+                                    Meta Conversion API (CAPI) Access Token (ঐচ্ছিক)
+                                </label>
+                                <textarea id="meta_capi_token" class="form-control font-monospace" name="meta_capi_token" rows="2"
+                                    placeholder="EAAG... (Facebook Events Manager হতে প্রাপ্ত সার্ভার সাইড টোকেন)">{{ old('meta_capi_token', $setting->meta_capi_token) }}</textarea>
+                                <div class="form-text text-secondary">
+                                    সার্ভার-সাইড ট্র্যাকিংয়ের জন্য ফেসবুক CAPI অ্যাক্সেস টোকেন।
+                                </div>
+                            </div>
+
+                            {{-- Automated Events Summary --}}
+                            <div class="col-12 mt-2">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                                        <i class="bi bi-activity text-success"></i> কনফিগার করা অটোমেটেড ট্র্যাকিং ইভেন্টসমূহ (Active Events):
+                                    </h6>
+                                    <div class="row g-2 small">
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-white rounded border h-100">
+                                                <strong class="text-primary d-block mb-1"><i class="bi bi-eye-fill me-1"></i> View Event (PageView):</strong>
+                                                <span class="text-secondary">ওয়েবসাইটের প্রতিটি পেজে ভিজিটর প্রবেশ করলেই ফেসবুকে স্বয়ংক্রিয়ভাবে <code>PageView</code> ইভেন্ট পাঠানো হবে।</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-white rounded border h-100">
+                                                <strong class="text-success d-block mb-1"><i class="bi bi-bag-check-fill me-1"></i> Purchase &amp; Lead Event:</strong>
+                                                <span class="text-secondary">গ্রাহক বুকিং কনফার্ম করার সাথে সাথে বুকিং কোড, প্রপার্টি ও ভাড়ার অংক সহ <code>Purchase</code> এবং <code>Lead</code> ইভেন্ট ফেসবুকে পাঠানো হবে।</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Submit Button --}}
             <div class="col-12">
                 <div class="card p-3 shadow-sm border-0">

@@ -180,41 +180,20 @@
                 </div>
             </div>
 
-            {{-- Marketing & Tracking Suite (Meta Pixel, GA4, CAPI, WhatsApp) --}}
-            <div class="card border-0 shadow-sm rounded-4 mt-4">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Marketing, Pixels & Sales Tracking</h5>
-                    <p class="text-muted small mb-0">Meta (Facebook) Pixel, Conversion API (CAPI), Google Analytics 4 এবং বিজ্ঞাপন ট্র্যাকিং কনফিগার করুন</p>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark">Meta Pixel ID</label>
-                            <input class="form-control" name="meta_pixel_id" value="{{ old('meta_pixel_id', $setting->meta_pixel_id) }}" placeholder="e.g. 1234567890123456">
-                            <small class="text-muted">ফেসবুক অ্যাডস লিড ও কনভার্সন ট্র্যাকিং পিক্সেল আইডি</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark">Google Analytics 4 (GA4) Measurement ID</label>
-                            <input class="form-control" name="ga4_measurement_id" value="{{ old('ga4_measurement_id', $setting->ga4_measurement_id) }}" placeholder="e.g. G-XXXXXXXXXX">
-                            <small class="text-muted">গুগল অ্যানালিটিক্স ৪ মেজারমেন্ট আইডি</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark">WhatsApp Click Tracking Hotline</label>
-                            <input class="form-control" name="whatsapp_tracking_number" value="{{ old('whatsapp_tracking_number', $setting->whatsapp_tracking_number) }}" placeholder="e.g. 8801700000000">
-                            <small class="text-muted">হোয়াটসঅ্যাপ ক্লিক ট্র্যাকিং ও সরাসরি চ্যাটের নাম্বার</small>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch pt-4">
-                                <input class="form-check-input" type="checkbox" name="enable_marketing_tracking" id="enableMarketingSwitch" value="1" {{ old('enable_marketing_tracking', $setting->enable_marketing_tracking) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold text-dark" for="enableMarketingSwitch">পিক্সেল ও অ্যানালিটিক্স স্ক্রিপ্ট চালু রাখুন (Enable Tracking)</label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold text-dark">Meta Conversion API (CAPI) Access Token (ঐচ্ছিক)</label>
-                            <textarea class="form-control font-monospace" name="meta_capi_token" rows="2" placeholder="EAAG... (Facebook Events Manager হতে প্রাপ্ত সার্ভার সাইড টোকেন)">{{ old('meta_capi_token', $setting->meta_capi_token) }}</textarea>
-                            <small class="text-muted">সার্ভার-সাইড ট্র্যাকিংয়ের জন্য ফেসবুক CAPI অ্যাক্সেস টোকেন</small>
-                        </div>
+            {{-- Marketing & Tracking Suite notice (shifted to Contact & Social Links) --}}
+            <div class="card border-0 shadow-sm rounded-4 mt-4 bg-light">
+                <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                            <i class="bi bi-graph-up-arrow text-primary"></i> Marketing, Pixels &amp; Sales Tracking Suite
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            Meta (Facebook) Pixel, Google Analytics 4 (GA4), Conversion API (CAPI) এবং WhatsApp ট্র্যাকিং এখন <strong>Contact &amp; Social Links</strong> পেজে স্থানান্তরিত হয়েছে।
+                        </p>
                     </div>
+                    <a href="{{ route('admin.contact-social.edit') }}" class="btn btn-outline-primary btn-sm px-3">
+                        <i class="bi bi-gear-wide-connected me-1"></i> Open Marketing Suite
+                    </a>
                 </div>
             </div>
 

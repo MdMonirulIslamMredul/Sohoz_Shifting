@@ -322,4 +322,21 @@
         </div>
     </section>
 
+@if(!empty($settings?->meta_pixel_id) && ($settings->enable_marketing_tracking ?? true))
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof fbq === 'function') {
+                fbq('track', 'ViewContent', {
+                    content_name: @json($service->title),
+                    content_category: 'Shifting Service',
+                    content_ids: [@json((string) $service->id)],
+                    content_type: 'product'
+                });
+            }
+        });
+    </script>
+    @endpush
+@endif
+
 @endsection

@@ -19,36 +19,36 @@
         <link rel="icon" href="{{ asset('images/logo.png') }}">
     @endif
 
-    @if($settings?->enable_marketing_tracking)
-        @if(!empty($settings->ga4_measurement_id))
-            <!-- Google Analytics 4 -->
-            <script async src="https://www.googletagmanager.com/gtag/js?id={{ $settings->ga4_measurement_id }}"></script>
-            <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '{{ $settings->ga4_measurement_id }}');
-            </script>
-        @endif
-        @if(!empty($settings->meta_pixel_id))
-            <!-- Meta Pixel Code -->
-            <script>
-                !function(f,b,e,v,n,t,s)
-                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)}(window, document,'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', '{{ $settings->meta_pixel_id }}');
-                fbq('track', 'PageView');
-            </script>
-            <noscript>
-                <img height="1" width="1" style="display:none"
-                    src="https://www.facebook.com/tr?id={{ $settings->meta_pixel_id }}&ev=PageView&noscript=1"/>
-            </noscript>
-        @endif
+    @if(!empty($settings?->meta_pixel_id) && ($settings->enable_marketing_tracking ?? true))
+        <!-- Meta (Facebook) Pixel Code -->
+        <script>
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '{{ $settings->meta_pixel_id }}');
+            fbq('track', 'PageView');
+        </script>
+        <noscript>
+            <img height="1" width="1" style="display:none"
+                src="https://www.facebook.com/tr?id={{ $settings->meta_pixel_id }}&ev=PageView&noscript=1"/>
+        </noscript>
+        <!-- End Meta Pixel Code -->
+    @endif
+
+    @if(!empty($settings?->ga4_measurement_id) && ($settings->enable_marketing_tracking ?? true))
+        <!-- Google Analytics 4 -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $settings->ga4_measurement_id }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '{{ $settings->ga4_measurement_id }}');
+        </script>
     @endif
     <style>
         :root {
@@ -393,12 +393,32 @@
             border-color: var(--border-color) !important;
         }
 
+        .bg-teal {
+            background-color: #0d9488 !important;
+            color: #ffffff !important;
+        }
+
+        .bg-cyan {
+            background-color: #0891b2 !important;
+            color: #ffffff !important;
+        }
+
         .btn-outline-light {
             --bs-btn-color: var(--text-color);
             --bs-btn-border-color: var(--text-color);
             --bs-btn-hover-bg: var(--text-color);
             --bs-btn-hover-border-color: var(--text-color);
             --bs-btn-hover-color: var(--bg-color);
+        }
+
+        .text-white .btn-outline-light,
+        .bg-dark .btn-outline-light,
+        [class*="-banner"] .btn-outline-light {
+            --bs-btn-color: #ffffff !important;
+            --bs-btn-border-color: rgba(255, 255, 255, 0.85) !important;
+            --bs-btn-hover-bg: #ffffff !important;
+            --bs-btn-hover-border-color: #ffffff !important;
+            --bs-btn-hover-color: #0f172a !important;
         }
 
         .btn-light {
